@@ -57,6 +57,16 @@ Les horaires se saisissent par jour. Déjeuner et dîner s'écrivent avec deux p
 
 Le statut affiché sous le titre d'accueil et dans « Venir » se calcule dans le navigateur avec le fuseau `timezone` du restaurant. Le formulaire de réservation refuse aussi les dates passées et les jours de fermeture. Sans JavaScript, le tableau des horaires reste affiché.
 
+### Écran de chargement
+
+À l'arrivée, un écran sombre affiche un compteur de 000 à 100 %, des anneaux dorés qui tournent et votre monogramme qui se remplit de bas en haut, avec une phrase qui change (« Allumage des lumières », « Dressage des tables »...). Puis deux volets s'ouvrent comme une porte et l'accueil s'anime.
+
+- Le site n'apparaît jamais avant d'être chargé : l'écran dure au minimum `loader.seconds` (2,6 s) et attend la fin du chargement. Un clic sur « Passer » ou la touche Échap l'ouvre tout de suite.
+- Pendant l'attente le reste de la page est inactif (clavier et lecteurs d'écran compris).
+- Si l'appareil demande de réduire les animations, il n'y a ni rotation ni volets : un simple fondu d'environ une demi-seconde.
+- Sécurité : sans JavaScript l'écran n'apparaît pas, et il est retiré d'office après 9 secondes si un problème survient.
+- Réglages dans `site.config.mjs`, bloc `loader` : `enabled` (`false` pour le supprimer), `seconds`, `oncePerSession` (`true` = une seule fois par visite) et `messages` (les phrases).
+
 ### Arrière-plan de l'accueil
 
 `hero.background` choisit le décor derrière le titre :
@@ -134,6 +144,8 @@ Les champs sont validés avant l'envoi, avec des messages d'erreur annoncés aux
 
 3. **Activer GitHub Pages** : dans le dépôt, ouvrez *Settings*, puis *Pages*. Sous *Build and deployment*, choisissez *Source : Deploy from a branch*, puis la branche `main` et le dossier **`/docs`**. Enregistrez.
 4. **Attendre une à deux minutes** : le site est alors en ligne à l'adresse `https://VOTRE-COMPTE.github.io/mon-restaurant/`.
+   > **Adresse avec `/docs/`** : si le site s'ouvre sur `https://VOTRE-COMPTE.github.io/mon-restaurant/docs/index.html`, c'est que Pages sert la racine du dépôt et non le dossier `docs`. Le site fonctionne, mais l'adresse est longue : dans *Settings*, *Pages*, choisissez le dossier `/docs` pour obtenir l'adresse courte, puis mettez `siteUrl` à jour.
+
 5. **Renseigner cette adresse** dans `siteUrl` (avec le `/` final), lancez `node build.mjs`, puis publiez la mise à jour :
 
    ```bash

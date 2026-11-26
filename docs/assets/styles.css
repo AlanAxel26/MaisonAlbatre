@@ -2489,3 +2489,367 @@ img {
     box-shadow: 0 0 0 0.6rem rgba(var(--pulse), 0);
   }
 }
+
+/* =====================================================================
+   ÉCRAN DE CHARGEMENT : anneaux, monogramme qui se remplit, compteur,
+   puis deux volets qui s'ouvrent comme une porte
+   ===================================================================== */
+.loader {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  color: var(--primary-ink);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --p: 0;
+}
+
+.is-loading .loader,
+.loader.is-done {
+  display: block;
+}
+
+.loader.is-done {
+  pointer-events: none;
+}
+
+html.is-loading {
+  overflow: hidden;
+}
+
+/* Le site ne s'anime qu'une fois l'écran ouvert */
+html.is-loading :where(body > :not(.loader), body > :not(.loader) *),
+html.is-loading body > :not(.loader) *::before,
+html.is-loading body > :not(.loader) *::after {
+  animation-play-state: paused;
+}
+
+.loader__panel {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 50.5%;
+  background: var(--primary);
+  transition: transform 1s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.loader__panel--top {
+  top: 0;
+  border-bottom: 1px solid rgb(var(--accent-rgb) / 0);
+}
+
+.loader__panel--bottom {
+  bottom: 0;
+}
+
+.loader.is-done .loader__panel--top {
+  border-bottom-color: var(--accent);
+  transform: translateY(-101%);
+}
+
+.loader.is-done .loader__panel--bottom {
+  transform: translateY(101%);
+}
+
+.loader__stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.9rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: opacity 0.5s ease, scale 0.7s ease;
+}
+
+.loader.is-done .loader__stage {
+  opacity: 0;
+  scale: 1.1;
+}
+
+/* Quadrillage en perspective et halo doré */
+.loader__stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(40rem 28rem at 50% 45%, rgb(var(--accent-rgb) / 0.14), transparent 70%),
+    linear-gradient(rgb(var(--accent-rgb) / 0.09) 1px, transparent 1px) 0 0 / 3.25rem 3.25rem,
+    linear-gradient(90deg, rgb(var(--accent-rgb) / 0.09) 1px, transparent 1px) 0 0 / 3.25rem 3.25rem;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 8%, transparent 68%);
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 8%, transparent 68%);
+}
+
+/* Cadres d'angle */
+.loader__corner {
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0 solid rgb(var(--accent-rgb) / 0.7);
+}
+
+.loader__corner--tl {
+  top: 1.25rem;
+  left: 1.25rem;
+  border-width: 1px 0 0 1px;
+}
+
+.loader__corner--tr {
+  top: 1.25rem;
+  right: 1.25rem;
+  border-width: 1px 1px 0 0;
+}
+
+.loader__corner--bl {
+  bottom: 1.25rem;
+  left: 1.25rem;
+  border-width: 0 0 1px 1px;
+}
+
+.loader__corner--br {
+  right: 1.25rem;
+  bottom: 1.25rem;
+  border-width: 0 1px 1px 0;
+}
+
+.loader__hud {
+  position: relative;
+  width: min(17rem, 62vw);
+  aspect-ratio: 1;
+}
+
+.loader__rings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.lr {
+  fill: none;
+  stroke: var(--accent);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.lr--ticks {
+  stroke-width: 6;
+  stroke-dasharray: 0.8 5.2;
+  opacity: 0.55;
+}
+
+.lr--orbit {
+  stroke-width: 1.2;
+  stroke-dasharray: 70 20 12 30 40 24 8 56;
+  opacity: 0.85;
+}
+
+.lr--track {
+  stroke-width: 1;
+  opacity: 0.2;
+}
+
+.lr--progress {
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 0 6px rgb(var(--accent-rgb) / 0.8));
+}
+
+.lr--inner {
+  stroke-width: 1;
+  stroke-dasharray: 2 8;
+  opacity: 0.5;
+}
+
+.loader__core {
+  position: absolute;
+  inset: 24%;
+  display: grid;
+  place-items: center;
+}
+
+.loader__mark {
+  grid-area: 1 / 1;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  fill: var(--accent);
+}
+
+.loader__mark--ghost {
+  opacity: 0.16;
+}
+
+/* Le monogramme se remplit de bas en haut avec la progression */
+.loader__mark--fill {
+  clip-path: inset(calc(100% - var(--p) * 1%) 0 0 0);
+  filter: drop-shadow(0 0 10px rgb(var(--accent-rgb) / 0.55));
+}
+
+.loader__scan {
+  position: absolute;
+  top: calc(100% - var(--p) * 1%);
+  right: -12%;
+  left: -12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--primary-ink) 50%, var(--accent) 70%, transparent);
+  box-shadow: 0 0 12px 1px rgb(var(--accent-rgb) / 0.8);
+  opacity: calc(1 - var(--p) / 100 * 0.15);
+}
+
+.loader__initial {
+  font-family: var(--font-title);
+  font-size: 4rem;
+  color: var(--accent);
+}
+
+.loader__name {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  letter-spacing: 0.55em;
+  text-indent: 0.55em;
+  text-transform: uppercase;
+}
+
+.loader__count {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2rem;
+  margin: 0;
+  font-size: 2.1rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-shadow: 0 0 18px rgb(var(--accent-rgb) / 0.5);
+}
+
+.loader__count small {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.loader__status {
+  margin: 0;
+  min-height: 1.3em;
+  color: var(--primary-soft, var(--primary-ink));
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-indent: 0.28em;
+  text-transform: uppercase;
+}
+
+.loader__status::after {
+  content: "_";
+  margin-left: 0.15em;
+  color: var(--accent);
+}
+
+.loader__skip {
+  position: absolute;
+  bottom: 1.1rem;
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  background: none;
+  color: var(--primary-ink);
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.loader__skip:hover,
+.loader__skip:focus-visible {
+  color: var(--accent);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lr--ticks {
+    animation: loader-spin 40s linear infinite;
+  }
+
+  .lr--orbit {
+    animation: loader-spin 6s linear infinite;
+  }
+
+  .lr--inner {
+    animation: loader-spin 14s linear infinite reverse;
+  }
+
+  .loader__stage::before {
+    animation: loader-grid 3s linear infinite;
+  }
+
+  .loader__status::after {
+    animation: loader-blink 0.9s steps(1) infinite;
+  }
+
+  .loader__hud {
+    animation: loader-pop 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader__panel {
+    transition: opacity 0.35s ease;
+  }
+
+  .loader.is-done .loader__panel--top,
+  .loader.is-done .loader__panel--bottom {
+    opacity: 0;
+    transform: none;
+  }
+
+  .loader__stage {
+    transition: opacity 0.35s ease;
+  }
+
+  .loader.is-done .loader__stage {
+    scale: 1;
+  }
+}
+
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-grid {
+  to {
+    background-position: 0 0, 0 3.25rem, 3.25rem 0;
+  }
+}
+
+@keyframes loader-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes loader-pop {
+  from {
+    opacity: 0;
+    scale: 0.82;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}

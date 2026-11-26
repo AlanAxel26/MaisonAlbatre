@@ -199,6 +199,39 @@ const logoMark = (cls) =>
   hasLogo ? `<svg class="${cls}" viewBox="${logoViewBox}" aria-hidden="true" focusable="false"><use href="#logo-m"/></svg>` : "";
 
 const [lvbW, lvbH] = logoViewBox.split(" ").slice(2).map(Number);
+
+// Écran de chargement (voir loader dans site.config.mjs)
+const LD = { enabled: true, seconds: 2.6, oncePerSession: false, messages: [], ...(c.loader || {}) };
+const loaderOn = LD.enabled !== false;
+const loaderSeconds = Math.max(0.8, Number(LD.seconds) || 2.6);
+// La classe is-loading est posée avant l'affichage (pas de flash du site) et retirée d'office
+// après 9 s même si le script principal échouait.
+const loaderHeadScript = loaderOn
+  ? `<script>(function(d){var r=d.documentElement;r.classList.add("js");try{if(${LD.oncePerSession ? "true" : "false"}&&sessionStorage.getItem("loader-seen"))return}catch(e){}r.classList.add("is-loading");setTimeout(function(){r.classList.remove("is-loading")},9000)})(document)</script>`
+  : '<script>document.documentElement.classList.add("js")</script>';
+const loaderMarkup = loaderOn
+  ? `<div class="loader" data-loader data-seconds="${loaderSeconds}" data-once="${LD.oncePerSession ? "true" : "false"}" data-messages="${esc((LD.messages || []).join("|"))}" role="status" aria-live="polite" aria-label="Chargement du site">
+  <div class="loader__panel loader__panel--top"></div>
+  <div class="loader__panel loader__panel--bottom"></div>
+  <div class="loader__stage">
+    <i class="loader__corner loader__corner--tl"></i><i class="loader__corner loader__corner--tr"></i><i class="loader__corner loader__corner--bl"></i><i class="loader__corner loader__corner--br"></i>
+    <div class="loader__hud" aria-hidden="true">
+      <svg class="loader__rings" viewBox="0 0 220 220" focusable="false">
+        <circle class="lr lr--ticks" cx="110" cy="110" r="106" pathLength="360"/>
+        <circle class="lr lr--orbit" cx="110" cy="110" r="94" pathLength="360"/>
+        <circle class="lr lr--track" cx="110" cy="110" r="80"/>
+        <circle class="lr lr--progress" cx="110" cy="110" r="80" pathLength="100" data-loader-ring/>
+        <circle class="lr lr--inner" cx="110" cy="110" r="68" pathLength="360"/>
+      </svg>
+      ${hasLogo ? `<div class="loader__core"><svg class="loader__mark loader__mark--ghost" viewBox="${logoViewBox}" focusable="false"><use href="#logo-m"/></svg><svg class="loader__mark loader__mark--fill" viewBox="${logoViewBox}" focusable="false"><use href="#logo-m"/></svg><span class="loader__scan"></span></div>` : `<div class="loader__core"><span class="loader__initial">${esc(b.name.trim()[0].toUpperCase())}</span></div>`}
+    </div>
+    <p class="loader__name">${esc(b.name)}</p>
+    <p class="loader__count"><span data-loader-count>000</span><small>%</small></p>
+    <p class="loader__status" data-loader-status>${esc((LD.messages || [])[0] || "Chargement")}</p>
+    <button class="loader__skip" type="button" data-loader-skip>Passer</button>
+  </div>
+</div>`
+  : "";
 const faviconSvg = hasLogo
   ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${T.primary}"/><svg x="${(64 - (38 * lvbW) / lvbH) / 2}" y="13" width="${(38 * lvbW) / lvbH}" height="38" viewBox="${logoViewBox}" fill="${T.accent}">${logoInner}</svg></svg>`
   : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${T.primary}"/><circle cx="46" cy="18" r="6" fill="${T.accent}"/><text x="30" y="46" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="34" fill="${primaryInk}">${esc(b.name.trim()[0].toUpperCase())}</text></svg>`;
@@ -224,7 +257,7 @@ function ogSvg() {
     .map((l, i) => `<tspan x="80" dy="${i === 0 ? 0 : 96}">${esc(l)}</tspan>`)
     .join("");
   const tagY = 250 + (nameLines.length - 1) * 96 + 90;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="${T.primary}"/><circle cx="1010" cy="170" r="150" fill="${T.accent}"/><circle cx="1090" cy="520" r="90" fill="${T.secondary}"/><rect x="80" y="110" width="96" height="10" fill="${T.accent}"/><text x="80" y="250" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="84" fill="${primaryInk}">${nameText}</text><text x="80" y="${tagY}" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="${primarySoft}">${esc(b.tagline)}</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="${T.primary}"/>${hasLogo ? `<svg x="${1090 - (400 * lvbW) / lvbH}" y="115" width="${(400 * lvbW) / lvbH}" height="400" viewBox="${logoViewBox}" fill="${T.accent}">${logoInner}</svg>` : `<circle cx="1010" cy="170" r="150" fill="${T.accent}"/><circle cx="1090" cy="520" r="90" fill="${T.secondary}"/>`}<rect x="80" y="110" width="96" height="10" fill="${T.accent}"/><text x="80" y="250" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="84" fill="${primaryInk}">${nameText}</text><text x="80" y="${tagY}" font-family="Arial, Helvetica, sans-serif" font-size="36" fill="${primarySoft}">${esc(b.tagline)}</text></svg>`;
 }
 
 // ---------- Composants HTML -------------------------------------------
@@ -519,11 +552,12 @@ const indexHtml = `<!doctype html>
 <noscript><link rel="stylesheet" href="${fontsUrl}"></noscript>
 <link rel="stylesheet" href="${cssUrl}">
 <style id="theme">${themeCss}</style>
-<script>document.documentElement.classList.add("js")</script>
+${loaderHeadScript}
 <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, "\\u003c")}</script>
 </head>
 <body id="top">
 ${logoSymbol}
+${loaderMarkup}
 <a class="skip-link" href="#contenu">Aller au contenu</a>
 
 <!-- ============ EN-TÊTE ============ -->

@@ -1,5 +1,6 @@
 /* =====================================================================
    main.js : JavaScript vanille, sans dépendance
+   0. Écran de chargement
    1. Apparition au défilement
    2. En-tête et menu burger
    3. Statut ouvert / fermé et horaires du jour
@@ -16,6 +17,80 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+  /* 0. ÉCRAN DE CHARGEMENT ------------------------------------------
+     Compteur et monogramme suivent le temps, mais plafonnent à 92 % tant que la page n'est pas
+     entièrement chargée. Puis deux volets s'ouvrent. Cliquer sur « Passer » ou Échap l'ouvre
+     tout de suite. Le reste de la page est inerte pendant l'attente. */
+  const loader = $("[data-loader]");
+  if (loader) {
+    const root = document.documentElement;
+    if (!root.classList.contains("is-loading")) {
+      loader.remove();
+    } else {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const minMs = reduce ? 600 : (Number(loader.dataset.seconds) || 2.6) * 1000;
+      const messages = (loader.dataset.messages || "").split("|").filter(Boolean);
+      const count = $("[data-loader-count]", loader);
+      const status = $("[data-loader-status]", loader);
+      const ring = $("[data-loader-ring]", loader);
+      const behind = $$("body > :not(.loader):not(script)");
+      behind.forEach((el) => el.setAttribute("inert", ""));
+      const started = performance.now();
+      let loaded = document.readyState === "complete";
+      let finished = false;
+      let shown = -1;
+      window.addEventListener("load", () => (loaded = true), { once: true });
+
+      const paint = (p) => {
+        loader.style.setProperty("--p", p.toFixed(2));
+        if (ring) ring.style.strokeDashoffset = String(100 - p);
+        if (count) count.textContent = String(Math.round(p)).padStart(3, "0");
+        if (status && messages.length) {
+          const i = Math.min(messages.length - 1, Math.floor((p / 100) * messages.length * 0.999));
+          if (i !== shown) {
+            shown = i;
+            status.textContent = messages[i];
+          }
+        }
+      };
+
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        paint(100);
+        document.removeEventListener("keydown", onKey);
+        try {
+          if (loader.dataset.once === "true") sessionStorage.setItem("loader-seen", "1");
+        } catch (e) {}
+        setTimeout(() => {
+          loader.classList.add("is-done");
+          root.classList.remove("is-loading");
+          behind.forEach((el) => el.removeAttribute("inert"));
+          setTimeout(() => loader.remove(), reduce ? 500 : 1300);
+        }, 450);
+      };
+
+      const onKey = (e) => {
+        if (e.key === "Escape") finish();
+      };
+      document.addEventListener("keydown", onKey);
+      $("[data-loader-skip]", loader).addEventListener("click", finish);
+
+      const frame = (now) => {
+        if (finished) return;
+        const t = Math.min(1, (now - started) / minMs);
+        // Départ rapide, ralentissement vers la fin
+        let p = (1 - Math.pow(1 - t, 2.2)) * 100;
+        if (!loaded) p = Math.min(p, 92);
+        paint(p);
+        if (p >= 99.5 && loaded) return finish();
+        if (now - started > 8000) return finish();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    }
+  }
 
   /* 1. APPARITION AU DÉFILEMENT ------------------------------------- */
   const revealItems = $$(".reveal");

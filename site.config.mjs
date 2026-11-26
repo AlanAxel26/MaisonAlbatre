@@ -14,7 +14,20 @@ export default {
   //  RÉGLAGES TECHNIQUES
   // ---------------------------------------------------------------
   // Adresse finale du site, avec le "/" à la fin (canonical, Open Graph, sitemap).
-  siteUrl: "https://votre-compte.github.io/votre-depot/",
+  // Ici : le dépôt contient le dossier docs/ à sa racine et GitHub Pages sert la racine, d'où "/docs/".
+  // Si vous choisissez le dossier /docs comme source dans les réglages Pages, l'adresse devient
+  // "https://alanaxel26.github.io/MaisonAlbatre/" : changez cette ligne en conséquence.
+  siteUrl: "https://alanaxel26.github.io/MaisonAlbatre/docs/",
+  // Écran de chargement affiché à l'arrivée sur le site, puis deux volets qui s'ouvrent.
+  //   enabled : false pour le supprimer. seconds : durée minimale d'affichage (le site n'apparaît jamais
+  //   avant d'être chargé). oncePerSession : true = une seule fois par visite (pas à chaque retour
+  //   sur la page). messages : phrases affichées successivement pendant le chargement.
+  loader: {
+    enabled: true,
+    seconds: 2.6,
+    oncePerSession: false,
+    messages: ["Allumage des lumières", "Dressage des tables", "Ouverture de la cave", "Bienvenue"],
+  },
   lang: "fr",
   locale: "fr_FR",
 

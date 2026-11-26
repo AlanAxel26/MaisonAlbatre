@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://votre-compte.github.io/votre-depot/sitemap.xml
+Sitemap: https://alanaxel26.github.io/MaisonAlbatre/docs/sitemap.xml
